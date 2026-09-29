@@ -96,13 +96,16 @@ h2{font-size:20px;font-weight:700;margin-bottom:12px}
 .seat em{font-style:normal;font-size:8.5px;font-weight:700;opacity:.9;letter-spacing:-.05em;margin-top:2px}
 .seat.c0{background:#2456A6}
 .seat.c1{background:#6D93D1}
+.seat.c2{background:#163A74}
+.seat.c3{background:#A9C1E8;color:#163A74}
+.seat.ct{background:#8A5A12}
 .seat.spare{background:#fff;color:var(--pt);border:1.5px solid var(--pt)}
 .seatlegend i.seat{height:12px;width:12px;padding:0}
 .ranges{list-style:none;margin-top:12px;border-top:1px solid var(--line)}
-.ranges li{display:grid;grid-template-columns:78px 36px 1fr;gap:6px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.ranges li{display:grid;grid-template-columns:78px 34px 1fr;gap:6px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}
 .ranges li:last-child{border-bottom:0}
 .ranges .tag{justify-self:start;color:#fff;font-size:12px;padding:2px 8px;border-radius:var(--r1)}
-.ranges .tag.c0{background:#2456A6}.ranges .tag.c1{background:#6D93D1}
+.ranges .tag.c0{background:#2456A6}.ranges .tag.c1{background:#6D93D1}.ranges .tag.c2{background:#163A74}.ranges .tag.c3{background:#A9C1E8;color:#163A74}.ranges .tag.ct{background:#8A5A12}
 .ranges li span:nth-child(2){color:var(--sub)}
 .srow .rn{font-size:12px;font-weight:600;color:var(--sub)}
 .seat.other{background:#fff;color:#9AA7B8;border:1px dashed #B8C3D2}
@@ -234,7 +237,7 @@ footer{margin-top:36px;font-size:12px;color:var(--sub);text-align:center}
     <p class="note">구장 전체 모양을 간단히 그린 그림입니다. 진한 파란 칸이 우리 구역입니다.</p>
 
     <div class="card grid" id="seatgrid"></div>
-    <p class="note">경기장을 바라보고 오른쪽 끝이 1번입니다. 좌석 번호 아래 글자가 앉을 반입니다. 반 안에서 누가 어디 앉을지는 인솔 선생님 안내를 따릅니다. 19열 왼쪽 11~14번은 다른 관람객 자리입니다.</p>
+    <p class="note">경기장을 바라보고 오른쪽 끝이 1번입니다. 좌석 번호 아래 글자가 앉을 반입니다. 19열 1~6번은 인솔 선생님 자리입니다. 반 안에서 누가 어디 앉을지는 인솔 선생님 안내를 따릅니다. 19열 왼쪽 11~14번은 다른 관람객 자리입니다.</p>
   </section>
 
   <section id="s-map">
@@ -398,15 +401,24 @@ const BUS_OF = (g,c)=> (g===3 && c!==3) ? 1 : 2;
 (function(){
   // 26구역: 경기장을 보고 오른쪽 끝이 1번. 홀수 열 14석, 짝수 열 13석(왼쪽 끝 14번 없음)
   const OURS={14:13,15:14,16:13,17:14,18:13,19:10};
-  // 반별 배정: 14열 1번부터 번호 순, 열 순으로 인원수만큼
-  const CLS=[['3-1',16],['3-2',12],['3-3',9],['3-4',4],['2-1',4],['2-2',13],['2-3',9]];
-  const order=[]; Object.keys(OURS).map(Number).forEach(r=>{for(let n=1;n<=OURS[r];n++) order.push([r,n]);});
-  const who={}, ranges=[]; let k=0;
-  CLS.forEach(([c,cnt],ci)=>{
-    const seats=order.slice(k,k+cnt); k+=cnt;
-    seats.forEach(([r,n])=>who[r+'-'+n]=[c,ci]);
-    const byRow={}; seats.forEach(([r,n])=>(byRow[r]=byRow[r]||[]).push(n));
-    ranges.push([c,cnt,ci,Object.entries(byRow).map(([r,ns])=>`${r}열 ${ns.length>1?ns[0]+'~'+ns[ns.length-1]:ns[0]}번`).join(', ')]);
+  // 반별 배정: 한 반이 한 줄에 4명 이상 붙어 앉도록 짠 구역 [반, 열, 시작번호, 끝번호]
+  const PLAN=[
+    ['3-1',14,5,13],['3-1',15,8,14],
+    ['3-2',15,1,7],['3-2',16,1,5],
+    ['3-3',16,10,13],['3-3',17,10,14],
+    ['3-4',14,1,4],
+    ['2-1',16,6,9],
+    ['2-2',17,1,9],['2-2',18,1,4],
+    ['2-3',18,5,13],
+    ['교사',19,1,6]];
+  const ORDER=['3-1','3-2','3-3','3-4','2-1','2-2','2-3','교사'];
+  const TONE={'3-1':1,'3-2':2,'3-3':0,'3-4':0,'2-1':3,'2-2':1,'2-3':2,'교사':'t'};
+  const who={};
+  PLAN.forEach(([c,r,f,t])=>{for(let n=f;n<=t;n++) who[r+'-'+n]=c;});
+  const ranges=ORDER.map(c=>{
+    const parts=PLAN.filter(x=>x[0]===c).sort((x,y)=>x[1]-y[1]);
+    const cnt=parts.reduce((a,x)=>a+x[3]-x[2]+1,0);
+    return [c,cnt,parts.map(([,r,f,t])=>`${r}열 ${f}~${t}번`).join(', ')];
   });
   let h='<div class="field-dir">▲ 경기장 쪽 (앞)</div>';
   Object.keys(OURS).map(Number).forEach(r=>{
@@ -416,12 +428,12 @@ const BUS_OF = (g,c)=> (g===3 && c!==3) ? 1 : 2;
       if(n>max) h+='<span></span>';
       else if(n>mine) h+=`<span class="seat other">${n}</span>`;
       else { const w=who[r+'-'+n];
-        h+= w ? `<span class="seat c${w[1]%2}">${n}<em>${w[0]}</em></span>` : `<span class="seat spare">${n}<em>&nbsp;</em></span>`; }
+        h+= w ? `<span class="seat c${TONE[w]}">${n}<em>${w}</em></span>` : `<span class="seat spare">${n}<em>&nbsp;</em></span>`; }
     }
     h+='</div>';
   });
-  h+='<div class="seatlegend"><span><i class="seat c0"></i>반별 학생 좌석 67석</span><span><i class="seat spare"></i>남는 좌석 10석</span><span><i class="seat other"></i>다른 관람객 좌석</span><span class="dir">← 번호 커짐 · 1번은 오른쪽 끝</span></div>';
-  h+='<ul class="ranges">'+ranges.map(([c,cnt,ci,t])=>`<li><b class="tag c${ci%2}">${c.replace('-','학년 ')}반</b><span>${cnt}명</span><span>${t}</span></li>`).join('')+'</ul>';
+  h+='<div class="seatlegend"><span><i class="seat c1"></i>반별 학생 좌석 67석</span><span><i class="seat ct"></i>교사 좌석 6석</span><span><i class="seat spare"></i>남는 좌석 4석</span><span><i class="seat other"></i>다른 관람객 좌석</span><span class="dir">← 번호 커짐 · 1번은 오른쪽 끝</span></div>';
+  h+='<ul class="ranges">'+ranges.map(([c,cnt,t])=>`<li><b class="tag c${TONE[c]}">${c==='교사'?'인솔 교사':c.replace('-','학년 ')+'반'}</b><span>${cnt}명</span><span>${t}</span></li>`).join('')+'</ul>';
   document.getElementById('seatgrid').innerHTML=h;
 })();
 
