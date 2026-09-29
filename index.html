@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>야구 단체관람 안내 · 10월 1일</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --pt:#2456A6;--pt-h:#1C4487;--pt-soft:#E6EDF8;
+  --bg:#F6F8FB;--card:#fff;--line:#E3E9F2;
+  --tx:#1B2A41;--sub:#64748B;
+  --ok:#1D7A4D;--ok-bg:#E7F3EC;--warn:#B26B0F;--warn-bg:#FBF0DE;
+  --r1:10px;--r2:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:66px}
+body{font-family:Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.6;word-break:keep-all;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;padding:0 20px 48px}
+html,body{overflow-x:hidden;max-width:100%}
+.hero{position:relative;color:#fff;background:#10244A url(header.jpg) center 62%/cover no-repeat;min-height:300px;display:flex;align-items:flex-end}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,22,48,.15) 0%,rgba(10,22,48,.35) 45%,rgba(10,22,48,.88) 100%)}
+.hero .in{position:relative;width:100%;max-width:560px;margin:0 auto;padding:18px 20px 22px;min-height:300px;display:flex;flex-direction:column}
+.hero .school{align-self:flex-start;margin-bottom:auto;font-size:13px;font-weight:600;letter-spacing:.04em;padding:4px 10px;border:1px solid rgba(255,255,255,.45);border-radius:var(--r1);background:rgba(10,22,48,.35)}
+.hero .date{margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600;opacity:.95}
+.hero .date .vs{padding:2px 9px;border-radius:var(--r1);background:#fff;color:var(--pt);font-size:13px;font-weight:700}
+.hero h1{font-size:27px;line-height:1.3;font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.hero p{font-size:14px;opacity:.85}
+header.bar{position:sticky;top:0;z-index:1000;background:rgba(246,248,251,.97);border-bottom:1px solid var(--line)}
+nav.tabs{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:8px 12px}
+nav.tabs a{height:38px;display:flex;align-items:center;justify-content:center;border-radius:var(--r1);color:var(--sub);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+nav.tabs a.on{background:var(--pt);color:#fff}
+
+.summary{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:18px 18px 16px}
+.match{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.02em}
+.match .vs{margin-left:auto;font-size:13px;color:var(--tx)}
+.summary h1{font-size:23px;font-weight:700;margin:6px 0 12px;line-height:1.35}
+.kv{display:grid;grid-template-columns:56px 1fr;row-gap:6px;font-size:15px}
+.kv dt{color:var(--sub)}
+.kv dd b{font-weight:600}
+
+section{margin-top:32px}
+.label{font-size:13px;font-weight:600;color:var(--sub);letter-spacing:.02em;margin-bottom:10px}
+h2{font-size:20px;font-weight:700;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r2)}
+.note{font-size:13px;color:var(--sub);margin-top:8px}
+
+/* 일정 */
+.tl{list-style:none;padding:6px 0}
+.tl li{display:grid;grid-template-columns:84px 1fr;padding:12px 16px;border-bottom:1px solid var(--line)}
+.tl li:last-child{border-bottom:0}
+.tl .t{font-weight:700;font-variant-numeric:tabular-nums}
+.tl .d{color:var(--tx)}
+.tl .d span{display:block;font-size:13px;color:var(--sub)}
+.tl li.now{background:var(--pt-soft)}
+
+/* 버스 */
+.bus{display:grid;gap:10px}
+.bus .card{padding:16px}
+.bus .hd{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.bus .no{font-size:20px;font-weight:700;color:var(--pt)}
+.bus .cnt{margin-left:auto;font-size:13px;color:var(--sub)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:14px;padding:3px 10px;border:1px solid var(--line);border-radius:var(--r1);background:var(--bg)}
+.bus .tch{margin-top:10px;font-size:14px;color:var(--sub)}
+
+/* 좌석 */
+.seatinfo{padding:16px}
+.big{font-size:28px;font-weight:700;letter-spacing:-.01em}
+.big small{font-size:13px;color:var(--sub);font-weight:500;margin-left:4px}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.badge{font-size:13px;font-weight:600;padding:3px 9px;border-radius:var(--r1)}
+.b-ok{background:var(--ok-bg);color:var(--ok)}
+.b-pt{background:var(--pt-soft);color:var(--pt)}
+.b-warn{background:var(--warn-bg);color:var(--warn)}
+.stadium{margin-top:10px;padding:10px}
+.stadium svg{display:block;width:100%;height:auto}
+.grid{margin-top:10px;padding:14px 12px 12px}
+.field-dir{text-align:center;font-size:12px;color:var(--sub);margin-bottom:8px}
+.srow{display:grid;grid-template-columns:34px repeat(14,1fr);align-items:center;gap:3px;margin-bottom:4px}
+.srow .rn{font-size:12px;font-weight:600;color:var(--sub)}
+.seat{height:22px;min-width:0;border-radius:5px 5px 3px 3px;background:var(--pt);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+
+/* 지도 */
+#map{height:360px;border-radius:var(--r2);border:1px solid var(--line);background:#e9edf2}
+.mapfail{display:none;padding:16px;font-size:14px;color:var(--sub)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.btn{height:48px;min-width:0;padding:0 8px;white-space:nowrap;border-radius:var(--r1);border:1px solid var(--line);background:#fff;color:var(--tx);font:600 15px Pretendard,sans-serif;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}
+.btn.pri{background:var(--pt);border-color:var(--pt);color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:13px;color:var(--sub)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.addr{padding:14px 16px;font-size:14px}
+.addr dt{color:var(--sub);font-size:13px}
+.addr dd{margin-bottom:8px}
+.addr dd:last-child{margin-bottom:0}
+.busspot{margin-top:10px;padding:14px 16px;font-size:14px}
+.busspot b{color:var(--pt)}
+.tmode{margin-top:10px;display:none;padding:14px 16px;font-size:14px;border-color:var(--pt)}
+.tmode.show{display:block}
+.lbl{background:none;border:0;box-shadow:none;font:700 12px Pretendard,sans-serif;color:var(--tx);white-space:nowrap}
+.pin{width:26px;height:26px;border-radius:50%;background:var(--pt);color:#fff;font:700 13px Pretendard,sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.ex{width:18px;height:18px;border-radius:4px;background:#1B2A41;color:#fff;font:700 11px Pretendard,sans-serif;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff}
+.buspin{background:#B26B0F;width:auto;padding:0 8px;border-radius:13px;font-size:12px}
+
+/* 명단 */
+.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding-bottom:10px}
+.filters::-webkit-scrollbar{display:none}
+.filters button{height:38px;padding:0 4px;white-space:nowrap;border:1px solid var(--line);border-radius:18px;background:#fff;font:500 14px Pretendard,sans-serif;color:var(--tx);cursor:pointer}
+.filters button.on{background:var(--tx);border-color:var(--tx);color:#fff}
+.search{width:100%;height:48px;border:1px solid var(--line);border-radius:var(--r1);padding:0 14px;font:15px Pretendard,sans-serif;margin-bottom:10px;background:#fff;color:var(--tx)}
+.search:focus{outline:0;border-color:var(--pt);box-shadow:0 0 0 3px rgba(36,86,166,.12)}
+.list{list-style:none}
+.list li{display:grid;grid-template-columns:30px 56px 1fr auto;gap:4px;align-items:center;min-height:48px;padding:0 16px;border-bottom:1px solid var(--line);font-size:15px}
+.list li:last-child{border-bottom:0}
+.list .no{font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
+.list .cls{font-size:13px;color:var(--sub)}
+.list .nm{font-weight:600}
+.list .hc{font-size:12px;font-weight:600;padding:2px 8px;border-radius:var(--r1);background:var(--pt-soft);color:var(--pt)}
+.list li.grp{min-height:36px;background:var(--bg);font-size:13px;font-weight:600;color:var(--sub);grid-template-columns:1fr auto}
+.empty{padding:18px 16px;font-size:14px;color:var(--sub)}
+.teachers{margin-top:10px;padding:14px 16px;font-size:14px}
+.teachers dt{font-size:13px;color:var(--sub)}
+.teachers dd{margin-bottom:6px}
+
+/* 안전 */
+.rules{padding:4px 0}
+.rules h3{font-size:15px;font-weight:700;padding:14px 16px 4px}
+.rules ul{padding:0 16px 10px 34px}
+.rules li{margin:3px 0}
+.rules .sep{border-top:1px solid var(--line)}
+footer{margin-top:36px;font-size:12px;color:var(--sub);text-align:center}
+@media (min-width:480px){.bus{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="in">
+    <span class="school">광평중학교 스포츠 문화 체험</span>
+    <div class="date">10월 1일(목) 18:30<span class="vs">한화 vs 삼성</span></div>
+    <h1>야구 단체관람 안내</h1>
+    <p>대구 삼성 라이온즈 파크 · 2·3학년 67명</p>
+  </div>
+</div>
+<header class="bar">
+  <nav class="tabs" id="tabs">
+    <a href="#s-plan">일정</a><a href="#s-bus">버스</a><a href="#s-seat">좌석</a><a href="#s-map">지도</a><a href="#s-list">명단</a><a href="#s-safe">안전</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="summary">
+    <dl class="kv">
+      <dt>출발</dt><dd><b>16:00</b> 학교에서 버스 탑승</dd>
+      <dt>경기</dt><dd><b>18:30</b> 시작 · 22:00 종료 예정</dd>
+      <dt>귀교</dt><dd><b>23:00</b> 학교 도착 예정</dd>
+      <dt>좌석</dt><dd><b>3루 SKY 상단 26구역</b> 14~19열</dd>
+    </dl>
+  </div>
+
+  <section id="s-plan">
+    <div class="label">세부 일정</div>
+    <div class="card">
+      <ol class="tl" id="timeline">
+        <li data-t="16:00"><div class="t">16:00</div><div class="d">버스 탑승 및 출발<span>학교 · 지정된 호차에 탑승</span></div></li>
+        <li data-t="17:00"><div class="t">17:00</div><div class="d">삼성 라이온즈 파크 도착<span>하차 후 반별 인원 확인</span></div></li>
+        <li data-t="18:30"><div class="t">18:30</div><div class="d">경기 관람 · 햄버거 저녁 식사<span>22:00 종료 예정</span></div></li>
+        <li data-t="22:00"><div class="t">22:00</div><div class="d">학교로 이동<span>버스 탑승 전 인원 확인</span></div></li>
+        <li data-t="23:00"><div class="t">23:00</div><div class="d">학교 도착<span>도착 즈음 학부모님께 연락드립니다</span></div></li>
+      </ol>
+    </div>
+    <p class="note">일정은 현지 사정(경기 시간, 교통)에 따라 바뀔 수 있습니다.</p>
+  </section>
+
+  <section id="s-bus">
+    <div class="label">버스 탑승</div>
+    <div class="bus">
+      <div class="card">
+        <div class="hd"><span class="no">1호차</span><span class="cnt">학생 32명 · 교사 4명</span></div>
+        <div class="chips"><span class="chip">3학년 1반 16명</span><span class="chip">3학년 2반 12명</span><span class="chip">3학년 4반 4명</span></div>
+        <div class="tch">인솔: 교장 선생님, 장성준, 김경양, 이인숙 선생님</div>
+      </div>
+      <div class="card">
+        <div class="hd"><span class="no">2호차</span><span class="cnt">학생 35명 · 교사 2명</span></div>
+        <div class="chips"><span class="chip">3학년 3반 9명</span><span class="chip">2학년 1반 4명</span><span class="chip">2학년 2반 13명</span><span class="chip">2학년 3반 9명</span></div>
+        <div class="tch">인솔: 김주현, 황선영 선생님</div>
+      </div>
+    </div>
+    <p class="note">내 이름과 호차는 아래 <a href="#s-list">명단</a>에서 찾을 수 있습니다. 버스를 세워 둔 곳은 <a href="#s-map">지도</a>에서 확인하세요.</p>
+  </section>
+
+  <section id="s-seat">
+    <div class="label">우리 좌석</div>
+    <div class="card seatinfo">
+      <div class="big">U-26구역 14~19열<small>총 77석</small></div>
+      <div class="facts">
+        <span class="badge b-pt">3루 · 삼성 홈 쪽</span>
+        <span class="badge b-ok">머리 위 지붕 있음(13~23열)</span>
+        <span class="badge b-warn">SKY 상단 · 계단 이동 주의</span>
+      </div>
+    </div>
+    <div class="card stadium" id="stadium"></div>
+    <p class="note">구장 전체 모양을 간단히 그린 그림입니다. 진한 파란 칸이 우리 구역입니다.</p>
+
+    <div class="card grid" id="seatgrid"></div>
+    <p class="note">좌석 번호 방향(1번이 왼쪽/오른쪽)은 현장 좌석 표시를 따르고, 자리는 인솔 선생님 안내에 따라 앉습니다.</p>
+  </section>
+
+  <section id="s-map">
+    <div class="label">위치 · 주변 지도</div>
+    <div id="map"></div>
+    <div class="card mapfail" id="mapfail">지도를 불러오지 못했습니다. 인터넷 연결을 확인하거나 아래 버튼으로 지도 앱을 여세요.</div>
+    <div class="legend">
+      <span><i style="background:#2456A6;opacity:.35"></i>야구장</span>
+      <span><i style="border:2px dashed #2456A6;background:none"></i>야구장 바깥 100m</span>
+      <span><i style="background:#1B2A41"></i>지하철 출구</span>
+      <span><i style="background:#B26B0F"></i>우리 버스</span>
+    </div>
+    <div class="card busspot" id="busspot"></div>
+    <div class="btns">
+      <a class="btn pri" id="kakao" target="_blank" rel="noopener">카카오맵으로 보기</a>
+      <a class="btn" id="naver" target="_blank" rel="noopener">네이버 지도로 보기</a>
+    </div>
+    <div class="card addr" style="margin-top:10px">
+      <dl>
+        <dt>주소</dt><dd>대구광역시 수성구 야구전설로 1 (연호동)</dd>
+        <dt>가까운 지하철역</dt><dd>대구 도시철도 2호선 <b>수성알파시티역</b> · 야구장 바로 북쪽(도보 약 2~3분), 1~5번 출구</dd>
+      </dl>
+    </div>
+    <button class="btn" id="tbtn" style="width:100%;margin-top:10px;font-weight:500;color:var(--sub)">버스 위치 표시하기 (선생님용)</button>
+    <div class="card tmode" id="tmode">
+      지도에서 버스를 세운 곳을 누르면 표시됩니다. 표시한 뒤 <b>링크 복사</b>를 눌러 학생들에게 보내면, 받은 링크에서 같은 위치가 보입니다.
+      <div class="btns"><button class="btn pri" id="copy">링크 복사</button><button class="btn" id="clear">표시 지우기</button></div>
+    </div>
+  </section>
+
+  <section id="s-list">
+    <div class="label">참가 학생 명단 · 67명</div>
+    <div class="filters" id="filters"></div>
+    <input class="search" id="q" type="search" placeholder="학번으로 찾기 (예: 3105)" autocomplete="off">
+    <div class="card"><ul class="list" id="list"></ul></div>
+    <div class="card teachers">
+      <dl>
+        <dt>인솔 교사 (6명)</dt>
+        <dd>1호차 · 교장 선생님, 장성준, 김경양, 이인숙 선생님</dd>
+        <dd>2호차 · 김주현, 황선영 선생님</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="s-safe">
+    <div class="label">꼭 지켜 주세요</div>
+    <div class="card rules">
+      <h3>야구장에서</h3>
+      <ul>
+        <li>인솔 선생님 안내에 따라 지정된 좌석에 앉습니다.</li>
+        <li>관람 중 함부로 자리를 옮기거나 뛰어다니지 않습니다.</li>
+        <li>난간에 기대거나 물건을 던지지 않습니다.</li>
+        <li>파울볼·홈런볼 등 날아오는 공을 조심합니다.</li>
+        <li>먹은 음식과 쓰레기는 정리해서 버립니다.</li>
+      </ul>
+      <div class="sep"></div>
+      <h3>버스에서</h3>
+      <ul>
+        <li>선생님 지시에 따라 차례대로 타고 내립니다.</li>
+        <li>배정된 좌석에 앉고, 안전띠를 꼭 맵니다.</li>
+        <li>차가 완전히 멈춘 뒤 내립니다.</li>
+        <li>창밖으로 손이나 머리를 내밀지 않고, 달리는 중에 일어나지 않습니다.</li>
+      </ul>
+      <div class="sep"></div>
+      <h3>이동할 때</h3>
+      <ul>
+        <li>개인행동은 하지 않고, 장소마다 인원 확인에 협조합니다.</li>
+        <li>볼일이 있으면 선생님께 먼저 말씀드립니다.</li>
+        <li>몸이 불편하거나 다치면 바로 선생님께 알립니다.</li>
+        <li>비싼 물건과 많은 용돈은 가져오지 않고, 소지품은 스스로 챙깁니다.</li>
+        <li>개인 상비약이 있으면 미리 선생님과 이야기합니다.</li>
+        <li>친구와 사소한 일로 다투지 않습니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>2026학년도 학교폭력예방 스포츠 문화 체험 · 광평중학교<br>지도 © OpenStreetMap 기여자</footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const STUDENTS = [{"g": 2, "c": 1, "id": "2102", "n": "김○빈"}, {"g": 2, "c": 1, "id": "2104", "n": "김○석"}, {"g": 2, "c": 1, "id": "2112", "n": "유○우"}, {"g": 2, "c": 1, "id": "2117", "n": "이○결"}, {"g": 2, "c": 2, "id": "2201", "n": "김○람"}, {"g": 2, "c": 2, "id": "2204", "n": "김○소"}, {"g": 2, "c": 2, "id": "2205", "n": "김○윤"}, {"g": 2, "c": 2, "id": "2206", "n": "김○인"}, {"g": 2, "c": 2, "id": "2207", "n": "박○우"}, {"g": 2, "c": 2, "id": "2208", "n": "박○현"}, {"g": 2, "c": 2, "id": "2210", "n": "이○은"}, {"g": 2, "c": 2, "id": "2212", "n": "이○윤"}, {"g": 2, "c": 2, "id": "2214", "n": "정○안"}, {"g": 2, "c": 2, "id": "2215", "n": "정○빈"}, {"g": 2, "c": 2, "id": "2216", "n": "정○겸"}, {"g": 2, "c": 2, "id": "2218", "n": "최○호"}, {"g": 2, "c": 2, "id": "2219", "n": "최○유"}, {"g": 2, "c": 3, "id": "2301", "n": "공○채"}, {"g": 2, "c": 3, "id": "2307", "n": "신○진"}, {"g": 2, "c": 3, "id": "2308", "n": "안○은"}, {"g": 2, "c": 3, "id": "2310", "n": "염○윤"}, {"g": 2, "c": 3, "id": "2312", "n": "육○윤"}, {"g": 2, "c": 3, "id": "2313", "n": "이○율"}, {"g": 2, "c": 3, "id": "2315", "n": "이○중"}, {"g": 2, "c": 3, "id": "2317", "n": "지○현"}, {"g": 2, "c": 3, "id": "2322", "n": "구○안"}, {"g": 3, "c": 1, "id": "3101", "n": "권○성"}, {"g": 3, "c": 1, "id": "3104", "n": "김○우"}, {"g": 3, "c": 1, "id": "3105", "n": "김○현"}, {"g": 3, "c": 1, "id": "3106", "n": "김○호"}, {"g": 3, "c": 1, "id": "3107", "n": "문○준"}, {"g": 3, "c": 1, "id": "3109", "n": "박○훈"}, {"g": 3, "c": 1, "id": "3110", "n": "손○경"}, {"g": 3, "c": 1, "id": "3111", "n": "안○현"}, {"g": 3, "c": 1, "id": "3112", "n": "오○택"}, {"g": 3, "c": 1, "id": "3113", "n": "이○정"}, {"g": 3, "c": 1, "id": "3114", "n": "임○원"}, {"g": 3, "c": 1, "id": "3115", "n": "전○샘"}, {"g": 3, "c": 1, "id": "3116", "n": "정○석"}, {"g": 3, "c": 1, "id": "3118", "n": "최○연"}, {"g": 3, "c": 1, "id": "3119", "n": "최○우"}, {"g": 3, "c": 1, "id": "3120", "n": "최○현"}, {"g": 3, "c": 2, "id": "3201", "n": "김○제"}, {"g": 3, "c": 2, "id": "3202", "n": "김○주"}, {"g": 3, "c": 2, "id": "3204", "n": "류○현"}, {"g": 3, "c": 2, "id": "3207", "n": "박○혁"}, {"g": 3, "c": 2, "id": "3210", "n": "손○정"}, {"g": 3, "c": 2, "id": "3211", "n": "송○찬"}, {"g": 3, "c": 2, "id": "3212", "n": "신○찬"}, {"g": 3, "c": 2, "id": "3214", "n": "이○후"}, {"g": 3, "c": 2, "id": "3216", "n": "차○연"}, {"g": 3, "c": 2, "id": "3217", "n": "천○우"}, {"g": 3, "c": 2, "id": "3218", "n": "최○건"}, {"g": 3, "c": 2, "id": "3219", "n": "하○준"}, {"g": 3, "c": 3, "id": "3301", "n": "권○윤"}, {"g": 3, "c": 3, "id": "3302", "n": "김○리"}, {"g": 3, "c": 3, "id": "3303", "n": "김○은"}, {"g": 3, "c": 3, "id": "3304", "n": "류○인"}, {"g": 3, "c": 3, "id": "3305", "n": "민○경"}, {"g": 3, "c": 3, "id": "3307", "n": "박○연"}, {"g": 3, "c": 3, "id": "3309", "n": "오○늬"}, {"g": 3, "c": 3, "id": "3310", "n": "이○현"}, {"g": 3, "c": 3, "id": "3312", "n": "정○윤"}, {"g": 3, "c": 4, "id": "3406", "n": "신○정"}, {"g": 3, "c": 4, "id": "3407", "n": "윤○채"}, {"g": 3, "c": 4, "id": "3411", "n": "정○금"}, {"g": 3, "c": 4, "id": "3413", "n": "정○늘"}];
+const GEO = {"stadium": [[35.8418077, 128.6803528], [35.8420784, 128.6808842], [35.841735, 128.6823326], [35.841291, 128.6826112], [35.8402112, 128.6822726], [35.8399192, 128.6816664], [35.8402171, 128.6803407], [35.8407004, 128.680001], [35.8418077, 128.6803528]], "buffer": [[35.8407, 128.678893], [35.840622, 128.678897], [35.840544, 128.67891], [35.840468, 128.678931], [35.840393, 128.67896], [35.840321, 128.678997], [35.840251, 128.679041], [35.839768, 128.679381], [35.839702, 128.679433], [35.83964, 128.679492], [35.839582, 128.679557], [35.839529, 128.679628], [35.839481, 128.679705], [35.839439, 128.679787], [35.839403, 128.679872], [35.839373, 128.679962], [35.839349, 128.680054], [35.839051, 128.68138], [35.839035, 128.681474], [35.839024, 128.68157], [35.839021, 128.681666], [35.839024, 128.681763], [35.839035, 128.681859], [35.839051, 128.681953], [35.839075, 128.682045], [35.839105, 128.682135], [35.839141, 128.68222], [35.839433, 128.682827], [35.839475, 128.682908], [35.839523, 128.682985], [35.839576, 128.683056], [35.839634, 128.683121], [35.839696, 128.68318], [35.839762, 128.683232], [35.839832, 128.683277], [35.839904, 128.683314], [35.839979, 128.683343], [35.841058, 128.683682], [35.841135, 128.683703], [35.841213, 128.683715], [35.841291, 128.683719], [35.841369, 128.683715], [35.841447, 128.683703], [35.841524, 128.683682], [35.841598, 128.683653], [35.841671, 128.683616], [35.842115, 128.683337], [35.842184, 128.683292], [35.84225, 128.68324], [35.842312, 128.683181], [35.84237, 128.683116], [35.842423, 128.683045], [35.842471, 128.682968], [35.842513, 128.682887], [35.842549, 128.682801], [35.842579, 128.682712], [35.842603, 128.682619], [35.842946, 128.681171], [35.842963, 128.681077], [35.842973, 128.680981], [35.842977, 128.680884], [35.842973, 128.680788], [35.842963, 128.680692], [35.842946, 128.680597], [35.842923, 128.680505], [35.842893, 128.680416], [35.842856, 128.68033], [35.842586, 128.679799], [35.842544, 128.679717], [35.842496, 128.67964], [35.842443, 128.679569], [35.842385, 128.679504], [35.842323, 128.679445], [35.842257, 128.679393], [35.842187, 128.679348], [35.842115, 128.679311], [35.84204, 128.679282], [35.840933, 128.678931], [35.840856, 128.67891], [35.840779, 128.678897]], "exits": [["1", 35.8429485, 128.6800118], ["2", 35.842493, 128.6792803], ["3", 35.8419999, 128.6794494], ["4", 35.8418583, 128.6799851], ["5", 35.8421839, 128.6805258]]};
+const BUS_OF = (g,c)=> (g===3 && c!==3) ? 1 : 2;
+
+/* ---------- 탭 강조 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('#tabs a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  function upd(){
+    let cur=0;
+    secs.forEach((s,i)=>{ if(s.getBoundingClientRect().top<90) cur=i; });
+    if(innerHeight+scrollY>=document.body.scrollHeight-4) cur=secs.length-1;
+    links.forEach((a,i)=>a.classList.toggle('on',i===cur));
+  }
+  addEventListener('scroll',upd,{passive:true}); upd();
+})();
+
+/* ---------- 오늘 일정 강조 ---------- */
+(function(){
+  const now=new Date();
+  if(now.getFullYear()!==2026||now.getMonth()!==9||now.getDate()!==1) return;
+  const m=now.getHours()*60+now.getMinutes();
+  let last=null;
+  document.querySelectorAll('#timeline li').forEach(li=>{
+    const [h,mm]=li.dataset.t.split(':').map(Number);
+    if(h*60+mm<=m) last=li;
+  });
+  if(last) last.classList.add('now');
+})();
+
+/* ---------- 구장 개략도 ---------- */
+(function(){
+  const NS='http://www.w3.org/2000/svg';
+  const H=[200,282],L=[80,162],R=[320,162];
+  let s=`<svg viewBox="0 0 400 360" xmlns="${NS}" role="img" aria-label="삼성 라이온즈 파크 구역 개략도, 3루 SKY 상단 26구역 강조">`;
+  // 외야·내야
+  s+=`<polygon points="${H} ${L} 128,88 200,64 272,88 ${R}" fill="#E7F3EC" stroke="#B9D8C5"/>`;
+  s+=`<polygon points="200,282 244,238 200,194 156,238" fill="#EFE7DC" stroke="#DCCDBB"/>`;
+  s+=`<polygon points="200,272 234,238 200,204 166,238" fill="#E7F3EC"/>`;
+  [[200,282],[244,238],[200,194],[156,238]].forEach(p=>s+=`<rect x="${p[0]-3}" y="${p[1]-3}" width="6" height="6" fill="#fff" stroke="#9AA7B8" transform="rotate(45 ${p[0]} ${p[1]})"/>`);
+  // 1층 내야석 띠
+  const o=22/Math.SQRT2;
+  s+=`<polygon points="${L} ${H} ${R} ${R[0]+o},${R[1]+o} 200,${H[1]+2*o} ${L[0]-o},${L[1]+o}" fill="#E3E9F2"/>`;
+  s+=`<text x="110" y="232" font-size="10" fill="#64748B" text-anchor="middle" transform="rotate(45 110 232)">3루 내야석</text>`;
+  s+=`<text x="290" y="232" font-size="10" fill="#64748B" text-anchor="middle" transform="rotate(-45 290 232)">1루 내야석</text>`;
+  s+=`<text x="150" y="218" font-size="12" font-weight="700" fill="#1B2A41" text-anchor="middle">3루(삼성)</text>`;
+  s+=`<text x="250" y="218" font-size="12" font-weight="700" fill="#1B2A41" text-anchor="middle">1루(원정)</text>`;
+  s+=`<text x="200" y="120" font-size="11" fill="#64748B" text-anchor="middle">외야</text>`;
+  // SKY 상단 링: 구간별 [시작, 끝, 구역수, 시작번호, 증감]
+  const d=56/Math.SQRT2;
+  const P1=[R[0]+d,R[1]+d], P2=[H[0]+(d*Math.SQRT2)*0.55,H[1]+d*1.02], P3=[H[0]-(d*Math.SQRT2)*0.55,H[1]+d*1.02], P4=[L[0]-d,L[1]+d], P5=[L[0]-d,40];
+  const runs=[[P1,P2,10,1],[P2,P3,4,11],[P3,P4,10,15],[P4,P5,7,25]];
+  const W=11; let mine=null;
+  runs.forEach(([a,b,n,st])=>{
+    const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy),nx=-dy/len*W,ny=dx/len*W;
+    for(let k=0;k<n;k++){
+      const t0=k/n,t1=(k+1)/n,g=0.6/len;
+      const p0=[a[0]+dx*(t0+g),a[1]+dy*(t0+g)],p1=[a[0]+dx*(t1-g),a[1]+dy*(t1-g)];
+      const pts=[[p0[0]+nx,p0[1]+ny],[p1[0]+nx,p1[1]+ny],[p1[0]-nx,p1[1]-ny],[p0[0]-nx,p0[1]-ny]];
+      const no=st+k, me=no===26;
+      s+=`<polygon points="${pts.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="${me?'#2456A6':'#CBD6E6'}" stroke="#fff" stroke-width="1"/>`;
+      const cx=(p0[0]+p1[0])/2,cy=(p0[1]+p1[1])/2;
+      s+=`<text x="${cx.toFixed(1)}" y="${(cy+3).toFixed(1)}" font-size="${me?9:7.5}" font-weight="${me?700:500}" fill="${me?'#fff':'#64748B'}" text-anchor="middle">${no}</text>`;
+      if(me) mine=[cx,cy];
+    }
+  });
+  s+=`<text x="200" y="352" font-size="10" fill="#64748B" text-anchor="middle">SKY 상단 지정석 (1~31구역)</text>`;
+  s+=`<text x="200" y="300" font-size="10" fill="#64748B" text-anchor="middle">홈</text>`;
+  if(mine){
+    const [x,y]=mine;
+    s+=`<line x1="${x+11}" y1="${y-4}" x2="${x+40}" y2="${y-38}" stroke="#2456A6" stroke-width="1.5"/>`;
+    s+=`<rect x="${x+22}" y="${y-64}" width="92" height="26" rx="6" fill="#2456A6"/>`;
+    s+=`<text x="${x+68}" y="${y-46}" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">우리 좌석 26</text>`;
+  }
+  s+='</svg>';
+  document.getElementById('stadium').innerHTML=s;
+})();
+
+/* ---------- 좌석 배치 ---------- */
+(function(){
+  const ROWS=[[14,13],[15,14],[16,13],[17,14],[18,13],[19,10]];
+  let h='<div class="field-dir">▲ 경기장 쪽 (앞) · 14열 13석 / 15열 14석 / 16열 13석 / 17열 14석 / 18열 13석 / 19열 10석</div>';
+  ROWS.forEach(([r,n])=>{
+    h+=`<div class="srow"><span class="rn">${r}열</span>`;
+    for(let i=1;i<=n;i++) h+=`<span class="seat">${i}</span>`;
+    h+='</div>';
+  });
+  document.getElementById('seatgrid').innerHTML=h;
+})();
+
+/* ---------- 지도 ---------- */
+(function(){
+  const ST=[35.8410853,128.6812015], STN=[35.8426299,128.6802649];
+  const q=encodeURIComponent('삼성라이온즈파크');
+  document.getElementById('kakao').href=`https://map.kakao.com/link/map/${q},${ST[0]},${ST[1]}`;
+  document.getElementById('naver').href=`https://map.naver.com/p/search/${q}`;
+
+  const params=new URLSearchParams(location.search);
+  let bus=null;
+  const bp=params.get('bus');
+  if(bp){ const a=bp.split(',').map(Number); if(a.length===2&&a.every(isFinite)) bus=a; }
+  const spot=document.getElementById('busspot');
+  function spotText(){
+    spot.innerHTML = bus
+      ? `<b>우리 버스 위치</b>를 지도에 주황색으로 표시했습니다. 경기 후 반별로 모여 이곳으로 이동합니다.`
+      : `버스를 세운 곳은 당일 인솔 선생님이 알려 드립니다. 위치가 정해지면 이 지도에 표시된 링크를 다시 보내 드립니다.`;
+  }
+  spotText();
+
+  if(typeof L==='undefined'){ document.getElementById('map').style.display='none'; document.getElementById('mapfail').style.display='block'; document.getElementById('tbtn').style.display='none'; return; }
+
+  const map=L.map('map',{scrollWheelZoom:false,tap:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  const buf=L.polygon(GEO.buffer,{color:'#2456A6',weight:2,dashArray:'6 6',fill:true,fillOpacity:.04}).addTo(map);
+  L.polygon(GEO.stadium,{color:'#2456A6',weight:2,fillOpacity:.3}).addTo(map)
+    .bindTooltip('삼성 라이온즈 파크',{permanent:true,direction:'center',className:'lbl'});
+  const icon=(cls,t)=>L.divIcon({className:'',html:`<div class="${cls}">${t}</div>`,iconSize:null});
+  L.marker(STN,{icon:icon('pin','M')}).addTo(map)
+    .bindTooltip('수성알파시티역 (2호선)',{permanent:true,direction:'top',offset:[0,-14],className:'lbl'});
+  GEO.exits.forEach(e=>L.marker([e[1],e[2]],{icon:icon('ex',e[0]),interactive:false}).addTo(map));
+  let busMk=null;
+  function drawBus(){
+    if(busMk){map.removeLayer(busMk);busMk=null;}
+    if(bus) busMk=L.marker(bus,{icon:icon('pin buspin','우리 버스'),zIndexOffset:1000}).addTo(map);
+  }
+  drawBus();
+  const b=buf.getBounds().extend(STN); if(bus) b.extend(bus);
+  map.fitBounds(b,{padding:[8,8]});
+
+  // 선생님용: 버스 위치 찍기
+  const tbtn=document.getElementById('tbtn'),tm=document.getElementById('tmode');
+  let on=false;
+  tbtn.onclick=()=>{on=!on;tm.classList.toggle('show',on);tbtn.textContent=on?'표시 끝내기':'버스 위치 표시하기 (선생님용)';};
+  map.on('click',e=>{ if(!on) return; bus=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)]; drawBus(); spotText(); });
+  function link(){ const u=new URL(location.href); u.hash=''; if(bus) u.searchParams.set('bus',bus.join(',')); else u.searchParams.delete('bus'); return u.toString(); }
+  document.getElementById('copy').onclick=async()=>{
+    if(!bus){ toast('먼저 지도에서 버스 위치를 누르세요.'); return; }
+    const u=link(); history.replaceState(null,'',u);
+    try{ await navigator.clipboard.writeText(u); toast('링크를 복사했습니다.'); }
+    catch(_){ prompt('아래 링크를 복사하세요.',u); }
+  };
+  document.getElementById('clear').onclick=()=>{ bus=null; drawBus(); spotText(); history.replaceState(null,'',link()); };
+})();
+
+function toast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(20,20,20,.9);color:#fff;font-size:14px;padding:10px 16px;border-radius:10px;z-index:2000';
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2500);
+}
+
+/* ---------- 명단 ---------- */
+(function(){
+  const CL=[['all','전체'],['2-1','2-1'],['2-2','2-2'],['2-3','2-3'],['3-1','3-1'],['3-2','3-2'],['3-3','3-3'],['3-4','3-4'],['b1','1호차'],['b2','2호차']];
+  const F=document.getElementById('filters'),Q=document.getElementById('q'),UL=document.getElementById('list');
+  let cur='all';
+  F.innerHTML=CL.map(([k,t])=>`<button data-k="${k}" class="${k==='all'?'on':''}">${t}</button>`).join('');
+  F.onclick=e=>{const b=e.target.closest('button'); if(!b) return; cur=b.dataset.k; F.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); draw();};
+  Q.oninput=draw;
+  function draw(){
+    const q=Q.value.trim();
+    const rows=STUDENTS.map((s,i)=>({...s,i:i+1,b:BUS_OF(s.g,s.c)})).filter(s=>{
+      if(cur==='b1'&&s.b!==1) return false;
+      if(cur==='b2'&&s.b!==2) return false;
+      if(/^\d-\d$/.test(cur)&&cur!==`${s.g}-${s.c}`) return false;
+      if(q&&!(s.n.includes(q)||s.id.includes(q))) return false;
+      return true;
+    });
+    if(!rows.length){UL.innerHTML='<li class="empty" style="display:block">찾는 학생이 없습니다. 이름을 다시 확인하세요.</li>';return;}
+    let h='',last='';
+    rows.forEach(s=>{
+      const k=`${s.g}-${s.c}`;
+      if(k!==last){ const n=rows.filter(r=>`${r.g}-${r.c}`===k).length; h+=`<li class="grp"><span>${s.g}학년 ${s.c}반</span><span>${n}명</span></li>`; last=k; }
+      h+=`<li><span class="no">${s.i}</span><span class="cls">${s.id}</span><span class="nm">${s.n}</span><span class="hc">${s.b}호차</span></li>`;
+    });
+    UL.innerHTML=h;
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
