@@ -80,6 +80,10 @@ h2{font-size:20px;font-weight:700;margin-bottom:12px}
 .field-dir{text-align:center;font-size:12px;color:var(--sub);margin-bottom:8px}
 .srow{display:grid;grid-template-columns:34px repeat(14,1fr);align-items:center;gap:3px;margin-bottom:4px}
 .srow .rn{font-size:12px;font-weight:600;color:var(--sub)}
+.seat.other{background:#fff;color:#9AA7B8;border:1px dashed #B8C3D2}
+.seatlegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--sub)}
+.seatlegend i{display:inline-block;width:12px;height:12px;margin-right:5px;vertical-align:-1px}
+.seatlegend .dir{flex-basis:100%}
 .seat{height:22px;min-width:0;border-radius:5px 5px 3px 3px;background:var(--pt);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 
 
@@ -204,7 +208,7 @@ footer{margin-top:36px;font-size:12px;color:var(--sub);text-align:center}
     <p class="note">구장 전체 모양을 간단히 그린 그림입니다. 진한 파란 칸이 우리 구역입니다.</p>
 
     <div class="card grid" id="seatgrid"></div>
-    <p class="note">좌석 번호 방향(1번이 왼쪽/오른쪽)은 현장 좌석 표시를 따르고, 자리는 인솔 선생님 안내에 따라 앉습니다.</p>
+    <p class="note">경기장을 바라보고 오른쪽 끝이 1번입니다. 19열 왼쪽 11~14번은 다른 관람객 자리이니 앉지 않습니다. 자리는 인솔 선생님 안내에 따라 앉습니다.</p>
   </section>
 
   <section id="s-map">
@@ -366,13 +370,20 @@ const BUS_OF = (g,c)=> (g===3 && c!==3) ? 1 : 2;
 
 /* ---------- 좌석 배치 ---------- */
 (function(){
-  const ROWS=[[14,13],[15,14],[16,13],[17,14],[18,13],[19,10]];
-  let h='<div class="field-dir">▲ 경기장 쪽 (앞) · 14열 13석 / 15열 14석 / 16열 13석 / 17열 14석 / 18열 13석 / 19열 10석</div>';
-  ROWS.forEach(([r,n])=>{
+  // 26구역: 경기장을 보고 오른쪽 끝이 1번. 홀수 열 14석, 짝수 열 13석(왼쪽 끝 14번 없음)
+  const OURS={14:13,15:14,16:13,17:14,18:13,19:10};
+  let h='<div class="field-dir">▲ 경기장 쪽 (앞)</div>';
+  Object.keys(OURS).map(Number).forEach(r=>{
+    const max=r%2?14:13, mine=OURS[r];
     h+=`<div class="srow"><span class="rn">${r}열</span>`;
-    for(let i=1;i<=n;i++) h+=`<span class="seat">${i}</span>`;
+    for(let n=14;n>=1;n--){
+      if(n>max) h+='<span></span>';
+      else if(n<=mine) h+=`<span class="seat">${n}</span>`;
+      else h+=`<span class="seat other">${n}</span>`;
+    }
     h+='</div>';
   });
+  h+='<div class="seatlegend"><span><i class="seat"></i>우리 좌석 77석</span><span><i class="seat other"></i>다른 관람객 좌석</span><span class="dir">← 번호 커짐 · 1번은 오른쪽 끝</span></div>';
   document.getElementById('seatgrid').innerHTML=h;
 })();
 
