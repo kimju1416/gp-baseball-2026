@@ -76,6 +76,11 @@ h2{font-size:20px;font-weight:700;margin-bottom:12px}
 .bus .cnt{margin-left:auto;font-size:13px;color:var(--sub)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:14px;padding:3px 10px;border:1px solid var(--line);border-radius:var(--r1);background:var(--bg)}
+.car{display:grid;grid-template-columns:52px 1fr;row-gap:4px;margin-top:12px;padding:10px 12px;border-radius:var(--r1);background:var(--pt-soft);font-size:14px}
+.car dt{color:var(--sub)}
+.car dd b{font-size:17px;font-weight:700;letter-spacing:.01em;color:var(--pt)}
+.car .lead{font-size:12px;font-weight:600;color:var(--pt);border:1px solid var(--pt);border-radius:6px;padding:0 5px;margin-left:4px}
+.car a{color:var(--pt);font-weight:600;text-decoration:none;margin-left:6px}
 .bus .tch{margin-top:10px;font-size:14px;color:var(--sub)}
 
 /* 좌석 */
@@ -212,15 +217,17 @@ footer{margin-top:36px;font-size:12px;color:var(--sub);text-align:center}
       <div class="card">
         <div class="hd"><span class="no">1호차</span><span class="cnt">학생 32명 · 교사 4명</span></div>
         <div class="chips"><span class="chip">3학년 1반 16명</span><span class="chip">3학년 2반 12명</span><span class="chip">3학년 4반 4명</span></div>
+        <dl class="car"><dt>차량</dt><dd><b>경북75바9545</b></dd><dt>운전원</dt><dd>윤○준 기사님 <span class="lead">현장총괄</span></dd></dl>
         <div class="tch">인솔: 교장 선생님, 장성준, 김경양, 이인숙 선생님</div>
       </div>
       <div class="card">
         <div class="hd"><span class="no">2호차</span><span class="cnt">학생 35명 · 교사 2명</span></div>
         <div class="chips"><span class="chip">3학년 3반 9명</span><span class="chip">2학년 1반 4명</span><span class="chip">2학년 2반 13명</span><span class="chip">2학년 3반 9명</span></div>
+        <dl class="car"><dt>차량</dt><dd><b>경북75바9086</b></dd><dt>운전원</dt><dd>박○일 기사님</dd></dl>
         <div class="tch">인솔: 김주현, 황선영 선생님</div>
       </div>
     </div>
-    <p class="note">내 이름과 호차는 아래 <a href="#s-list">명단</a>에서 찾을 수 있습니다. 버스를 세워 둔 곳은 <a href="#s-map">지도</a>에서 확인하세요.</p>
+    <p class="note">버스 앞 유리의 차량 번호를 확인하고 타세요. 내 이름과 호차는 아래 <a href="#s-list">명단</a>에서 찾을 수 있습니다. 버스를 세워 둔 곳은 <a href="#s-map">지도</a>에서 확인하세요.</p>
   </section>
 
   <section id="s-seat">
